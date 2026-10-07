@@ -1,69 +1,38 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.js</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-slate-950 text-white">
+      <section className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 text-center">
+        <div className="mb-6 rounded-full bg-blue-500/10 px-4 py-2 text-sm text-blue-400">
+          Warranty Wallet
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <h1 className="max-w-3xl text-5xl font-bold tracking-tight md:text-6xl">
+          Never lose track of your warranties again.
+        </h1>
+
+        <p className="mt-6 max-w-2xl text-lg text-slate-400">
+          Keep all your product warranties in one place and know exactly when
+          your coverage expires.
+        </p>
+
+        <div className="mt-8 flex gap-4">
+          <Link
+            href="/dashboard"
+            className="rounded-lg bg-blue-600 px-6 py-3 font-medium hover:bg-blue-500"
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Go to Dashboard
+          </Link>
+
+          <Link
+            href="/warranties"
+            className="rounded-lg border border-slate-700 px-6 py-3 font-medium hover:bg-slate-800"
           >
-            Documentation
-          </a>
+            View Warranties
+          </Link>
         </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }
