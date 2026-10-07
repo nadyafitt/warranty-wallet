@@ -41,7 +41,7 @@ export default function WarrantyForm({
   function handleSubmit(event) {
     event.preventDefault();
 
-    const warrantyData = {
+    onSubmit({
       productName,
       brand,
       category,
@@ -50,182 +50,220 @@ export default function WarrantyForm({
       purchasePrice,
       store,
       notes,
-    };
-
-    onSubmit(warrantyData);
+    });
   }
+
+  const inputClass =
+    "w-full rounded-xl border border-white/5 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none transition-all placeholder:text-slate-700 focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10";
+
+  const labelClass =
+    "mb-2 block text-sm font-medium text-slate-300";
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 rounded-xl border border-slate-800 bg-slate-900 p-6"
+      className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.025] shadow-2xl shadow-black/20"
     >
-      {/* Product Name */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-white">
-          Product Name
-        </label>
+      {/* Form header */}
+      <div className="border-b border-white/5 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 px-6 py-5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
+            🛡️
+          </div>
 
-        <input
-          type="text"
-          value={productName}
-          onChange={(event) =>
-            setProductName(event.target.value)
-          }
-          placeholder="e.g. iPhone 14"
-          required
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-blue-500"
-        />
+          <div>
+            <h2 className="font-semibold text-white">
+              Product Information
+            </h2>
+
+            <p className="text-xs text-slate-500">
+              Keep your warranty details organized.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Brand */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-white">
-          Brand
-        </label>
+      <div className="space-y-6 p-6">
+        {/* Product + Brand */}
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>
+              Product Name
+            </label>
 
-        <input
-          type="text"
-          value={brand}
-          onChange={(event) =>
-            setBrand(event.target.value)
-          }
-          placeholder="e.g. Apple"
-          required
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-blue-500"
-        />
-      </div>
+            <input
+              type="text"
+              value={productName}
+              onChange={(e) =>
+                setProductName(e.target.value)
+              }
+              placeholder="e.g. iPhone 14"
+              required
+              className={inputClass}
+            />
+          </div>
 
-      {/* Category */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-white">
-          Category
-        </label>
+          <div>
+            <label className={labelClass}>
+              Brand
+            </label>
 
-        <select
-          value={category}
-          onChange={(event) =>
-            setCategory(event.target.value)
-          }
-          required
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-blue-500"
+            <input
+              type="text"
+              value={brand}
+              onChange={(e) =>
+                setBrand(e.target.value)
+              }
+              placeholder="e.g. Apple"
+              required
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        {/* Category */}
+        <div>
+          <label className={labelClass}>
+            Category
+          </label>
+
+          <select
+            value={category}
+            onChange={(e) =>
+              setCategory(e.target.value)
+            }
+            required
+            className={inputClass}
+          >
+            <option value="">
+              Select a category
+            </option>
+
+            <option value="Electronics">
+              Electronics
+            </option>
+
+            <option value="Appliances">
+              Appliances
+            </option>
+
+            <option value="Furniture">
+              Furniture
+            </option>
+
+            <option value="Others">
+              Others
+            </option>
+          </select>
+        </div>
+
+        {/* Dates */}
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>
+              Purchase Date
+            </label>
+
+            <input
+              type="date"
+              value={purchaseDate}
+              onChange={(e) =>
+                setPurchaseDate(e.target.value)
+              }
+              required
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>
+              Warranty End Date
+            </label>
+
+            <input
+              type="date"
+              value={warrantyEndDate}
+              onChange={(e) =>
+                setWarrantyEndDate(e.target.value)
+              }
+              required
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        {/* Price + Store */}
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>
+              Purchase Price
+            </label>
+
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-600">
+                RM
+              </span>
+
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={purchasePrice}
+                onChange={(e) =>
+                  setPurchasePrice(e.target.value)
+                }
+                placeholder="0.00"
+                className={`${inputClass} pl-12`}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className={labelClass}>
+              Store
+            </label>
+
+            <input
+              type="text"
+              value={store}
+              onChange={(e) =>
+                setStore(e.target.value)
+              }
+              placeholder="e.g. Apple Store"
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        {/* Notes */}
+        <div>
+          <label className={labelClass}>
+            Notes
+          </label>
+
+          <textarea
+            value={notes}
+            onChange={(e) =>
+              setNotes(e.target.value)
+            }
+            placeholder="Anything else worth remembering..."
+            rows={4}
+            className={`${inputClass} resize-none`}
+          />
+        </div>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 hover:shadow-blue-600/30"
         >
-          <option value="">
-            Select category
-          </option>
+          <span className="relative z-10">
+            {submitLabel}
+          </span>
 
-          <option value="Electronics">
-            Electronics
-          </option>
-
-          <option value="Appliances">
-            Appliances
-          </option>
-
-          <option value="Furniture">
-            Furniture
-          </option>
-
-          <option value="Others">
-            Others
-          </option>
-        </select>
+          <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+        </button>
       </div>
-
-      {/* Purchase Date */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-white">
-          Purchase Date
-        </label>
-
-        <input
-          type="date"
-          value={purchaseDate}
-          onChange={(event) =>
-            setPurchaseDate(event.target.value)
-          }
-          required
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-blue-500"
-        />
-      </div>
-
-      {/* Warranty End Date */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-white">
-          Warranty End Date
-        </label>
-
-        <input
-          type="date"
-          value={warrantyEndDate}
-          onChange={(event) =>
-            setWarrantyEndDate(event.target.value)
-          }
-          required
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-blue-500"
-        />
-      </div>
-
-      {/* Purchase Price */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-white">
-          Purchase Price (RM)
-        </label>
-
-        <input
-          type="number"
-          min="0"
-          step="0.01"
-          value={purchasePrice}
-          onChange={(event) =>
-            setPurchasePrice(event.target.value)
-          }
-          placeholder="e.g. 3499.00"
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-blue-500"
-        />
-      </div>
-
-      {/* Store */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-white">
-          Store
-        </label>
-
-        <input
-          type="text"
-          value={store}
-          onChange={(event) =>
-            setStore(event.target.value)
-          }
-          placeholder="e.g. Apple Store"
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-blue-500"
-        />
-      </div>
-
-      {/* Notes */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-white">
-          Notes
-        </label>
-
-        <textarea
-          value={notes}
-          onChange={(event) =>
-            setNotes(event.target.value)
-          }
-          placeholder="Add any additional information..."
-          rows={4}
-          className="w-full resize-none rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-blue-500"
-        />
-      </div>
-
-      {/* Submit */}
-      <button
-        type="submit"
-        className="w-full rounded-lg bg-blue-600 px-5 py-3 font-medium text-white hover:bg-blue-500"
-      >
-        {submitLabel}
-      </button>
     </form>
   );
 }
