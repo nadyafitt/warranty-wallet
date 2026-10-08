@@ -6,13 +6,43 @@ import WarrantyForm from "@/components/WarrantyForm";
 export default function NewWarrantyPage() {
   const router = useRouter();
 
-  function handleSubmit(warrantyData) {
-    console.log("Warranty submitted:", warrantyData);
+  async function handleSubmit(warrantyData) {
+    try {
+      console.log("Warranty submitted:", warrantyData);
 
-    // Later:
-    // POST warrantyData to our API/database
+      const response = await fetch("/api/warranties", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(warrantyData),
+      });
 
-    router.push("/warranties");
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Failed to save warranty:", data);
+
+        alert(
+          data.error || "Failed to save warranty. Please try again."
+        );
+
+        return;
+      }
+
+      console.log("Warranty saved:", data);
+
+      alert("Warranty saved successfully!");
+
+      router.push("/warranties");
+      router.refresh();
+    } catch (error) {
+      console.error("Save warranty error:", error);
+
+      alert(
+        "Something went wrong while saving the warranty."
+      );
+    }
   }
 
   return (
