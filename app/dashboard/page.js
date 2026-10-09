@@ -3,6 +3,8 @@ import Navbar from "@/components/Navbar";
 import DashboardStats from "@/components/DashboardStats";
 import { getPool } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 function calculateStatus(warrantyEndDate) {
   const today = new Date();
   const endDate = new Date(warrantyEndDate);

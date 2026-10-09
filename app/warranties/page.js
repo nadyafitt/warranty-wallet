@@ -1,11 +1,16 @@
+
 import Link from "next/link";
 import { getPool } from "@/lib/db";
+
+// Always fetch fresh data when this page is requested.
+export const dynamic = "force-dynamic";
 
 function calculateStatus(warrantyEndDate) {
   const today = new Date();
   const endDate = new Date(warrantyEndDate);
 
   const difference = endDate.getTime() - today.getTime();
+
   const daysRemaining = Math.ceil(
     difference / (1000 * 60 * 60 * 24)
   );
@@ -94,9 +99,10 @@ export default async function WarrantiesPage() {
         warranty_end_date,
         purchase_price,
         store,
-        notes
+        notes,
+        created_at
       FROM warranties
-      ORDER BY warranty_end_date ASC
+      ORDER BY created_at DESC, id DESC
     `);
 
     warranties = rows;
@@ -249,18 +255,14 @@ export default async function WarrantiesPage() {
                     <div className="ww-card-detail">
                       <span>Purchased</span>
                       <strong>
-                        {formatDate(
-                          warranty.purchase_date
-                        )}
+                        {formatDate(warranty.purchase_date)}
                       </strong>
                     </div>
 
                     <div className="ww-card-detail">
                       <span>Warranty Ends</span>
                       <strong>
-                        {formatDate(
-                          warranty.warranty_end_date
-                        )}
+                        {formatDate(warranty.warranty_end_date)}
                       </strong>
                     </div>
 
@@ -308,8 +310,7 @@ export default async function WarrantiesPage() {
                         className={`ww-card-progress-bar ${
                           warranty.status === "Expired"
                             ? "ww-card-progress-expired"
-                            : warranty.status ===
-                              "Expiring Soon"
+                            : warranty.status === "Expiring Soon"
                             ? "ww-card-progress-warning"
                             : "ww-card-progress-active"
                         }`}
@@ -317,8 +318,7 @@ export default async function WarrantiesPage() {
                           width:
                             warranty.status === "Expired"
                               ? "100%"
-                              : warranty.status ===
-                                "Expiring Soon"
+                              : warranty.status === "Expiring Soon"
                               ? "75%"
                               : "45%",
                         }}
