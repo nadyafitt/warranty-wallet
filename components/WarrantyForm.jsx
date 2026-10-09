@@ -39,6 +39,60 @@ export default function WarrantyForm({
     initialData.notes || ""
   );
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchError, setSearchError] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  async function handleProductSearch() {
+    const query = searchQuery.trim();
+
+    if (query.length < 2) {
+      setSearchError("Enter at least 2 characters to search.");
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError("");
+
+    try {
+      const response = await fetch(
+        `/api/products?q=${encodeURIComponent(query)}`
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Product search failed.");
+      }
+
+      setSearchResults(data.products || []);
+      if (!data.products?.length) {
+        setSearchError("No products found. You can enter the details manually.");
+      }
+    } catch (error) {
+      setSearchResults([]);
+      setSearchError(error.message || "Unable to search products right now.");
+    } finally {
+      setIsSearching(false);
+    }
+  }
+
+  function selectProduct(product) {
+    setProductName(product.name || "");
+    setBrand(product.brand || "");
+
+    const categoryMap = {
+      Appliances: "Home Appliance",
+      Electronics: "Electronics",
+      Furniture: "Other",
+      Others: "Other",
+    };
+    setCategory(categoryMap[product.category] || "Other");
+    setSearchResults([]);
+    setSearchQuery("");
+  }
+
   function handleSubmit(event) {
     event.preventDefault();
 
@@ -87,6 +141,72 @@ export default function WarrantyForm({
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
+
+          <div className="sm:col-span-2">
+            <label htmlFor="productSearch" className={labelClass}>
+              Find your product
+            </label>
+            <div className="mt-2 flex gap-2">
+              <input
+                id="productSearch"
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    handleProductSearch();
+                  }
+                }}
+                placeholder="Search by product name, e.g. Samsung Galaxy S24"
+                className={`${inputClass} mt-0 min-w-0 flex-1`}
+              />
+              <button
+                type="button"
+                onClick={handleProductSearch}
+                disabled={isSearching}
+                className="shrink-0 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-60"
+              >
+                {isSearching ? "Searching…" : "Search"}
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-slate-600">
+              Search results can fill in the product name, brand, and category.
+            </p>
+            {searchError && (
+              <p role="status" className="mt-2 text-xs text-amber-300">
+                {searchError}
+              </p>
+            )}
+            {searchResults.length > 0 && (
+              <div className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Product search results">
+                {searchResults.map((product, index) => (
+                  <button
+                    key={`${product.id}-${index}`}
+                    type="button"
+                    onClick={() => selectProduct(product)}
+                    className="flex min-w-0 items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.02] p-3 text-left transition hover:border-blue-500/50 hover:bg-blue-500/[0.06]"
+                  >
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt=""
+                        className="h-14 w-14 shrink-0 rounded-lg bg-white object-contain"
+                      />
+                    ) : (
+                      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-white/[0.05] text-xl" aria-hidden="true">📦</span>
+                    )}
+                    <span className="min-w-0">
+                      <span className="block line-clamp-2 text-xs font-medium text-slate-200">{product.name}</span>
+                      <span className="mt-1 block truncate text-[11px] text-slate-500">
+                        {[product.brand, product.category].filter(Boolean).join(" · ")}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Product Name */}
 
