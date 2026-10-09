@@ -1,6 +1,38 @@
+
 "use client";
 
 import { useState } from "react";
+
+function mapCategory(apiCategory) {
+  const category = String(apiCategory || "").toLowerCase();
+
+  if (
+    category.includes("furniture") ||
+    category.includes("home-decoration")
+  ) {
+    return "Furniture";
+  }
+
+  if (
+    category.includes("appliance") ||
+    category.includes("kitchen")
+  ) {
+    return "Appliances";
+  }
+
+  if (
+    category.includes("mobile") ||
+    category.includes("laptop") ||
+    category.includes("computer") ||
+    category.includes("smartphone") ||
+    category.includes("electronics") ||
+    category.includes("tablet")
+  ) {
+    return "Electronics";
+  }
+
+  return "Others";
+}
 
 export default function WarrantyForm({
   initialData = {},
@@ -10,33 +42,78 @@ export default function WarrantyForm({
   const [productName, setProductName] = useState(
     initialData.productName || ""
   );
-
-  const [brand, setBrand] = useState(
-    initialData.brand || ""
-  );
-
-  const [category, setCategory] = useState(
-    initialData.category || ""
-  );
-
+  const [brand, setBrand] = useState(initialData.brand || "");
+  const [category, setCategory] = useState(initialData.category || "");
   const [purchaseDate, setPurchaseDate] = useState(
     initialData.purchaseDate || ""
   );
-
-  const [warrantyEndDate, setWarrantyEndDate] =
-    useState(initialData.warrantyEndDate || "");
-
+  const [warrantyEndDate, setWarrantyEndDate] = useState(
+    initialData.warrantyEndDate || ""
+  );
   const [purchasePrice, setPurchasePrice] = useState(
     initialData.purchasePrice || ""
   );
+  const [store, setStore] = useState(initialData.store || "");
+  const [notes, setNotes] = useState(initialData.notes || "");
 
-  const [store, setStore] = useState(
-    initialData.store || ""
-  );
+  // Product API search state
+  const [productQuery, setProductQuery] = useState("");
+  const [products, setProducts] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
-  const [notes, setNotes] = useState(
-    initialData.notes || ""
-  );
+  async function searchProducts(event) {
+    event.preventDefault();
+
+    const query = productQuery.trim();
+
+    if (query.length < 2) {
+      setProducts([]);
+      setSearchError("Enter at least 2 characters.");
+      return;
+    }
+
+    setSearching(true);
+    setProducts([]);
+    setSearchError("");
+
+    try {
+      const response = await fetch(
+        `/api/products?q=${encodeURIComponent(query)}`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "Unable to search products."
+        );
+      }
+
+      setProducts(data.products || []);
+
+      if (!data.products?.length) {
+        setSearchError(
+          "No matching products found. You can enter the details manually."
+        );
+      }
+    } catch (error) {
+      setSearchError(
+        error.message || "Product search failed. Try again."
+      );
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  function selectProduct(product) {
+    setProductName(product.name || "");
+    setBrand(product.brand || "");
+    setCategory(mapCategory(product.category));
+    setProductQuery(product.name || "");
+    setProducts([]);
+    setSearchError("");
+  }
 
   function handleSubmit(event) {
     event.preventDefault();
