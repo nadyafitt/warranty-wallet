@@ -3,49 +3,56 @@ export default function DashboardStats({
   expiringSoon = 0,
   expired = 0,
 }) {
+  const stats = [
+    {
+      label: "Active",
+      value: active,
+      description: "Warranties currently active",
+      icon: "✓",
+      className: "ww-dashboard-stat-active",
+    },
+    {
+      label: "Expiring Soon",
+      value: expiringSoon,
+      description: "Expiring within 30 days",
+      icon: "!",
+      className: "ww-dashboard-stat-warning",
+    },
+    {
+      label: "Expired",
+      value: expired,
+      description: "Warranties that have expired",
+      icon: "×",
+      className: "ww-dashboard-stat-expired",
+    },
+  ];
+
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
-        <p className="text-sm text-slate-400">
-          Active
-        </p>
+    <div className="ww-dashboard-stats">
+      {stats.map((stat) => (
+        <div
+          key={stat.label}
+          className={`ww-dashboard-stat ${stat.className}`}
+        >
+          <div className="ww-dashboard-stat-top">
+            <div className="ww-dashboard-stat-icon">
+              {stat.icon}
+            </div>
 
-        <p className="mt-2 text-4xl font-bold text-green-400">
-          {active}
-        </p>
+            <span className="ww-dashboard-stat-label">
+              {stat.label}
+            </span>
+          </div>
 
-        <p className="mt-2 text-sm text-slate-500">
-          Warranties currently active
-        </p>
-      </div>
+          <p className="ww-dashboard-stat-value">
+            {stat.value}
+          </p>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
-        <p className="text-sm text-slate-400">
-          Expiring Soon
-        </p>
-
-        <p className="mt-2 text-4xl font-bold text-yellow-400">
-          {expiringSoon}
-        </p>
-
-        <p className="mt-2 text-sm text-slate-500">
-          Expiring within 30 days
-        </p>
-      </div>
-
-      <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
-        <p className="text-sm text-slate-400">
-          Expired
-        </p>
-
-        <p className="mt-2 text-4xl font-bold text-red-400">
-          {expired}
-        </p>
-
-        <p className="mt-2 text-sm text-slate-500">
-          Warranties that have expired
-        </p>
-      </div>
+          <p className="ww-dashboard-stat-description">
+            {stat.description}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }

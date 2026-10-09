@@ -1,13 +1,14 @@
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import DashboardStats from "@/components/DashboardStats";
-import Link from "next/link";
 import { getPool } from "@/lib/db";
 
 function calculateStatus(warrantyEndDate) {
   const today = new Date();
   const endDate = new Date(warrantyEndDate);
 
-  const difference = endDate.getTime() - today.getTime();
+  const difference =
+    endDate.getTime() - today.getTime();
 
   const daysRemaining = Math.ceil(
     difference / (1000 * 60 * 60 * 24)
@@ -33,6 +34,87 @@ function calculateStatus(warrantyEndDate) {
   };
 }
 
+function getProductIcon(category) {
+  const categoryName = String(category || "").toLowerCase();
+
+  if (
+    categoryName.includes("phone") ||
+    categoryName.includes("mobile") ||
+    categoryName.includes("electronics")
+  ) {
+    return "📱";
+  }
+
+  if (
+    categoryName.includes("computer") ||
+    categoryName.includes("laptop")
+  ) {
+    return "💻";
+  }
+
+  if (
+    categoryName.includes("audio") ||
+    categoryName.includes("headphone")
+  ) {
+    return "🎧";
+  }
+
+  if (
+    categoryName.includes("home") ||
+    categoryName.includes("appliance")
+  ) {
+    return "🏠";
+  }
+
+  if (categoryName.includes("camera")) {
+    return "📷";
+  }
+
+  if (categoryName.includes("watch")) {
+    return "⌚";
+  }
+
+  return "📦";
+}
+
+function formatDate(date) {
+  if (!date) return "—";
+
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function getStatusClass(status) {
+  if (status === "Active") {
+    return "ww-dashboard-product-status-active";
+  }
+
+  if (status === "Expiring Soon") {
+    return "ww-dashboard-product-status-warning";
+  }
+
+  return "ww-dashboard-product-status-expired";
+}
+
+function getDaysText(daysRemaining) {
+  if (daysRemaining < 0) {
+    const days = Math.abs(daysRemaining);
+
+    return `${days} ${days === 1 ? "day" : "days"} ago`;
+  }
+
+  if (daysRemaining === 0) {
+    return "Ends today";
+  }
+
+  return `${daysRemaining} ${
+    daysRemaining === 1 ? "day" : "days"
+  } left`;
+}
+
 export default async function DashboardPage() {
   const pool = getPool();
 
@@ -48,7 +130,8 @@ export default async function DashboardPage() {
         purchase_date,
         warranty_end_date,
         purchase_price,
-        store
+        store,
+        notes
       FROM warranties
       ORDER BY warranty_end_date ASC
     `);
@@ -61,10 +144,11 @@ export default async function DashboardPage() {
     );
   }
 
-  // Calculate warranty statuses
   const warrantyData = warranties.map((warranty) => {
     const { status, daysRemaining } =
-      calculateStatus(warranty.warranty_end_date);
+      calculateStatus(
+        warranty.warranty_end_date
+      );
 
     return {
       ...warranty,
@@ -73,7 +157,6 @@ export default async function DashboardPage() {
     };
   });
 
-  // Statistics
   const activeCount = warrantyData.filter(
     (warranty) => warranty.status === "Active"
   ).length;
@@ -88,13 +171,13 @@ export default async function DashboardPage() {
 
   const totalCount = warrantyData.length;
 
-  // Protection percentage
   const protectedPercentage =
     totalCount > 0
-      ? Math.round((activeCount / totalCount) * 100)
+      ? Math.round(
+          (activeCount / totalCount) * 100
+        )
       : 0;
 
-  // Products needing attention
   const attentionWarranties = warrantyData
     .filter(
       (warranty) =>
@@ -103,29 +186,35 @@ export default async function DashboardPage() {
     )
     .slice(0, 3);
 
+  const recentWarranties = warrantyData.slice(0, 3);
+
   return (
-    <div className="min-h-screen bg-[#070b14] text-white">
+    <div className="ww-dashboard-page">
       <Navbar />
 
-      <main className="grid-background min-h-[calc(100vh-72px)] px-6 py-10">
-        <div className="mx-auto max-w-7xl">
+      <main className="ww-dashboard-main">
+        <div className="ww-dashboard-background" />
 
-          {/* Header */}
-          <div className="mb-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+        <div className="hero-glow ww-dashboard-glow" />
+
+        <div className="ww-dashboard-container">
+
+          {/* =================================================
+              HEADER
+              ================================================= */}
+
+          <div className="ww-dashboard-header">
             <div>
-              <p className="mb-2 text-sm font-medium text-blue-400">
+              <p className="ww-dashboard-label">
                 GOOD TO SEE YOU
               </p>
 
-              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+              <h1 className="ww-dashboard-title">
                 Your Warranty
-                <span className="text-slate-500">
-                  {" "}
-                  Dashboard
-                </span>
+                <span> Dashboard</span>
               </h1>
 
-              <p className="mt-3 max-w-xl text-sm text-slate-500">
+              <p className="ww-dashboard-description">
                 Keep an eye on your products and make sure
                 you're covered when it matters.
               </p>
@@ -133,212 +222,336 @@ export default async function DashboardPage() {
 
             <Link
               href="/warranties/new"
-              className="w-fit rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 hover:bg-blue-500"
+              className="ww-dashboard-add-button"
             >
-              + Add Product
+              <span>+</span>
+              Add Product
             </Link>
           </div>
 
-          {/* Stats */}
+          {/* =================================================
+              STATS
+              ================================================= */}
+
           <DashboardStats
             active={activeCount}
             expiringSoon={expiringSoonCount}
             expired={expiredCount}
           />
 
-          {/* Needs Attention */}
-          <section className="mt-10">
-            <div className="mb-4 flex items-center justify-between">
+          {/* =================================================
+              NEEDS ATTENTION
+              ================================================= */}
+
+          <section className="ww-dashboard-section">
+            <div className="ww-dashboard-section-header">
               <div>
-                <h2 className="text-lg font-semibold">
+                <h2>
                   Needs Attention
                 </h2>
 
-                <p className="mt-1 text-xs text-slate-600">
+                <p>
                   Warranties that may need your attention
                 </p>
               </div>
 
               <Link
                 href="/warranties"
-                className="text-sm text-blue-400 hover:text-blue-300"
+                className="ww-dashboard-view-link"
               >
-                View all →
+                View all
+                <span>→</span>
               </Link>
             </div>
 
-            {attentionWarranties.length === 0 ? (
-              <div className="rounded-2xl border border-emerald-500/10 bg-emerald-500/[0.03] p-5">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-                    ✓
-                  </div>
+            {attentionWarranties.length > 0 ? (
+              <div className="ww-dashboard-attention-list">
+                {attentionWarranties.map(
+                  (warranty) => (
+                    <div
+                      key={warranty.id}
+                      className={`ww-dashboard-attention-card ${
+                        warranty.status ===
+                        "Expired"
+                          ? "ww-dashboard-attention-expired"
+                          : "ww-dashboard-attention-warning"
+                      }`}
+                    >
+                      <div className="ww-dashboard-attention-icon">
+                        {warranty.status ===
+                        "Expired"
+                          ? "×"
+                          : "!"}
+                      </div>
 
-                  <div>
-                    <p className="font-medium text-slate-200">
-                      Everything looks good
-                    </p>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                      None of your warranties need attention
-                      right now.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {attentionWarranties.map((warranty) => (
-                  <div
-                    key={warranty.id}
-                    className={`rounded-2xl border p-5 ${
-                      warranty.status === "Expired"
-                        ? "border-red-500/10 bg-red-500/[0.03]"
-                        : "border-amber-500/10 bg-amber-500/[0.03]"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        <div
-                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                            warranty.status === "Expired"
-                              ? "bg-red-500/10 text-red-400"
-                              : "bg-amber-500/10 text-amber-400"
-                          }`}
-                        >
-                          {warranty.status === "Expired"
-                            ? "×"
-                            : "!"}
-                        </div>
-
+                      <div className="ww-dashboard-attention-content">
                         <div>
-                          <p className="font-medium text-slate-200">
+                          <h3>
                             {warranty.product_name}
-                          </p>
+                          </h3>
 
-                          <p className="mt-1 text-sm text-slate-500">
-                            {warranty.brand} ·{" "}
+                          <p>
+                            {warranty.brand}
+                            {" · "}
                             {warranty.category}
                           </p>
                         </div>
-                      </div>
 
-                      <div className="text-right">
-                        <p
-                          className={`text-sm font-semibold ${
-                            warranty.status === "Expired"
-                              ? "text-red-400"
-                              : "text-amber-400"
-                          }`}
-                        >
-                          {warranty.status}
-                        </p>
+                        <div className="ww-dashboard-attention-right">
+                          <span
+                            className={
+                              warranty.status ===
+                              "Expired"
+                                ? "ww-dashboard-attention-status-expired"
+                                : "ww-dashboard-attention-status-warning"
+                            }
+                          >
+                            {warranty.status}
+                          </span>
 
-                        <p className="mt-1 text-xs text-slate-600">
-                          {warranty.daysRemaining < 0
-                            ? `${Math.abs(
-                                warranty.daysRemaining
-                              )} days ago`
-                            : warranty.daysRemaining === 0
-                            ? "Expires today"
-                            : `${warranty.daysRemaining} days left`}
-                        </p>
+                          <strong>
+                            {getDaysText(
+                              warranty.daysRemaining
+                            )}
+                          </strong>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
+              </div>
+            ) : (
+              <div className="ww-dashboard-no-attention">
+                <div>
+                  ✓
+                </div>
+
+                <div>
+                  <p>
+                    Everything looks good
+                  </p>
+
+                  <span>
+                    You don't have any warranties
+                    requiring attention.
+                  </span>
+                </div>
               </div>
             )}
           </section>
 
-          {/* Overview */}
-          <section className="mt-10 grid gap-6 lg:grid-cols-3">
+          {/* =================================================
+              PROTECTION OVERVIEW
+              ================================================= */}
 
-            {/* Protection Overview */}
-            <div className="rounded-2xl border border-white/5 bg-white/[0.025] p-6 lg:col-span-2">
-              <div className="flex items-center justify-between">
+          <section className="ww-dashboard-overview">
+
+            <div className="ww-dashboard-protection-card">
+              <div className="ww-dashboard-card-header">
                 <div>
-                  <h2 className="font-semibold">
+                  <h2>
                     Protection Overview
                   </h2>
 
-                  <p className="mt-1 text-xs text-slate-600">
+                  <p>
                     Your current warranty coverage
                   </p>
                 </div>
 
-                <span className="text-2xl">
+                <div className="ww-dashboard-card-icon">
                   🛡️
-                </span>
+                </div>
               </div>
 
-              <div className="mt-8">
-                <div className="mb-2 flex justify-between text-xs">
-                  <span className="text-slate-500">
-                    Protected products
-                  </span>
+              <div className="ww-dashboard-protection-content">
+                <div className="ww-dashboard-percentage">
+                  <strong>
+                    {protectedPercentage}%
+                  </strong>
 
-                  <span className="font-medium text-slate-300">
-                    {activeCount} / {totalCount}
+                  <span>
+                    protected
                   </span>
                 </div>
 
-                <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-700"
-                    style={{
-                      width: `${protectedPercentage}%`,
-                    }}
-                  />
-                </div>
+                <div className="ww-dashboard-progress-area">
+                  <div className="ww-dashboard-progress-header">
+                    <span>
+                      Active warranties
+                    </span>
 
-                <div className="mt-3 flex justify-between">
-                  <p className="text-xs text-slate-600">
-                    {protectedPercentage}% currently protected
-                  </p>
+                    <strong>
+                      {activeCount} / {totalCount}
+                    </strong>
+                  </div>
 
-                  <p className="text-xs text-slate-600">
-                    {totalCount} total products
+                  <div className="ww-dashboard-progress-track">
+                    <div
+                      className="ww-dashboard-progress-bar"
+                      style={{
+                        width: `${protectedPercentage}%`,
+                      }}
+                    />
+                  </div>
+
+                  <p>
+                    {totalCount === 0
+                      ? "Add your first warranty to start tracking your protection."
+                      : `${activeCount} of your ${totalCount} products are currently protected.`}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Wallet Card */}
-            <div className="rounded-2xl border border-white/5 bg-gradient-to-br from-blue-500/10 to-indigo-500/5 p-6">
-              <p className="text-xs font-medium uppercase tracking-wider text-blue-400">
-                Warranty Wallet
-              </p>
+            <div className="ww-dashboard-message-card">
+              <span className="ww-dashboard-message-label">
+                WARRANTY WALLET
+              </span>
 
-              <p className="mt-5 text-2xl font-bold">
+              <h2>
                 Stay covered.
+              </h2>
+
+              <p>
+                Keep your purchase information organized
+                so you never forget when your coverage ends.
               </p>
 
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                Keep your purchase information organized so
-                you never forget when your coverage ends.
-              </p>
-
-              <div className="mt-6 text-3xl">
-                🛡️ 📦 🔒
+              <div className="ww-dashboard-message-icons">
+                🛡️
+                <span>+</span>
+                📦
+                <span>+</span>
+                🔒
               </div>
             </div>
 
           </section>
 
-          {/* Empty Database Message */}
-          {totalCount === 0 && (
-            <div className="mt-8 rounded-2xl border border-blue-500/10 bg-blue-500/[0.03] p-6 text-center">
-              <p className="text-sm text-slate-400">
-                Your warranty wallet is empty.
-              </p>
+          {/* =================================================
+              YOUR PRODUCTS
+              ================================================= */}
+
+          <section className="ww-dashboard-products-section">
+            <div className="ww-dashboard-section-header">
+              <div>
+                <h2>
+                  Your Products
+                </h2>
+
+                <p>
+                  Recently added products in your wallet
+                </p>
+              </div>
 
               <Link
-                href="/warranties/new"
-                className="mt-3 inline-block text-sm font-medium text-blue-400 hover:text-blue-300"
+                href="/warranties"
+                className="ww-dashboard-view-link"
               >
-                Add your first warranty →
+                View all
+                <span>→</span>
               </Link>
+            </div>
+
+            {recentWarranties.length > 0 ? (
+              <div className="ww-dashboard-products-grid">
+                {recentWarranties.map(
+                  (warranty) => (
+                    <div
+                      key={warranty.id}
+                      className="ww-dashboard-product-card"
+                    >
+                      <div className="ww-dashboard-product-top">
+                        <div className="ww-dashboard-product-icon">
+                          {getProductIcon(
+                            warranty.category
+                          )}
+                        </div>
+
+                        <span
+                          className={`ww-dashboard-product-status ${getStatusClass(
+                            warranty.status
+                          )}`}
+                        >
+                          {warranty.status}
+                        </span>
+                      </div>
+
+                      <h3>
+                        {warranty.product_name}
+                      </h3>
+
+                      <p className="ww-dashboard-product-brand">
+                        {warranty.brand}
+                      </p>
+
+                      <div className="ww-dashboard-product-info">
+                        <div>
+                          <span>
+                            Warranty ends
+                          </span>
+
+                          <strong>
+                            {formatDate(
+                              warranty.warranty_end_date
+                            )}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>
+                            Status
+                          </span>
+
+                          <strong>
+                            {getDaysText(
+                              warranty.daysRemaining
+                            )}
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            ) : (
+              <div className="ww-dashboard-empty">
+                <div className="ww-dashboard-empty-icon">
+                  📦
+                </div>
+
+                <h3>
+                  Your wallet is empty
+                </h3>
+
+                <p>
+                  Add your first product to start
+                  tracking your warranties.
+                </p>
+
+                <Link
+                  href="/warranties/new"
+                  className="ww-dashboard-empty-button"
+                >
+                  Add Your First Warranty
+                  <span>→</span>
+                </Link>
+              </div>
+            )}
+          </section>
+
+          {/* =================================================
+              DATABASE EMPTY MESSAGE
+              ================================================= */}
+
+          {totalCount === 0 && (
+            <div className="ww-dashboard-footer-note">
+              <span>💡</span>
+
+              <p>
+                Your dashboard will automatically update
+                when you add your first warranty.
+              </p>
             </div>
           )}
 
