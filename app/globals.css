@@ -36,10 +36,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    padding: 0;
+    margin: 0;
+  }
 }
 
 a {
@@ -351,6 +358,81 @@ a {
     font-size: 12px;
     line-height: 1.6;
   }
+}
+
+/* =========================================================
+   LANDING PAGE
+   ========================================================= */
+
+.ww-home-main {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 32px 80px;
+}
+
+.ww-home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 64px;
+  padding-bottom: 64px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ww-home-copy { max-width: 500px; }
+.ww-home-eyebrow, .ww-home-overline { margin: 0; color: #60a5fa; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+.ww-home-title { margin: 18px 0 0; color: #f8fafc; font-size: clamp(42px, 4.2vw, 58px); font-weight: 700; letter-spacing: -0.045em; line-height: 1.08; }
+.ww-home-description { max-width: 460px; margin: 22px 0 0; color: #94a3b8; font-size: 16px; line-height: 1.8; }
+.ww-home-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.ww-home-primary, .ww-home-secondary { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 0 18px; border-radius: 10px; font-size: 13px; font-weight: 600; transition: background 0.2s ease, border-color 0.2s ease; }
+.ww-home-primary { border: 1px solid #2563eb; background: #2563eb; color: white; }
+.ww-home-primary:hover { background: #3b82f6; border-color: #3b82f6; }
+.ww-home-secondary { border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.025); color: #cbd5e1; }
+.ww-home-secondary:hover { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.06); }
+.ww-home-proof { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 30px; padding-top: 17px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: #64748b; font-size: 12px; }
+
+.ww-home-preview { min-width: 0; padding: 26px; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 16px; background: #0d1422; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18); }
+.ww-home-preview-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 19px; border-bottom: 1px solid rgba(255, 255, 255, 0.09); }
+.ww-home-overline { color: #64748b; font-size: 10px; letter-spacing: 0.14em; }
+.ww-home-preview-title { margin: 8px 0 0; color: #f1f5f9; font-size: 20px; font-weight: 650; letter-spacing: -0.02em; }
+.ww-home-preview-subtitle { margin: 5px 0 0; color: #64748b; font-size: 12px; }
+.ww-home-viewall { flex-shrink: 0; margin-top: 4px; color: #60a5fa; font-size: 12px; font-weight: 600; }
+.ww-home-viewall:hover { color: #93c5fd; }
+.ww-home-rows > :not(:last-child) { border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+.ww-home-row { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 17px 0; }
+.ww-home-row-product { min-width: 0; }
+.ww-home-row-product p { overflow: hidden; margin: 0; color: #e2e8f0; font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.ww-home-row-product span { display: block; overflow: hidden; margin-top: 5px; color: #64748b; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.ww-home-row-status { flex-shrink: 0; text-align: right; }
+.ww-home-row-status p { margin: 0; font-size: 11px; font-weight: 650; }
+.ww-home-row-status span { display: block; margin-top: 5px; color: #64748b; font-size: 10px; }
+.ww-home-caption { margin-top: 2px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.09); color: #64748b; font-size: 11px; line-height: 1.6; }
+.ww-home-empty { padding: 38px 8px; text-align: center; }
+.ww-home-empty-title { margin: 0; color: #e2e8f0; font-size: 14px; font-weight: 600; }
+.ww-home-empty-description { max-width: 300px; margin: 8px auto 17px; color: #64748b; font-size: 12px; line-height: 1.7; }
+.ww-home-features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px; padding-top: 30px; }
+.ww-home-features p { margin: 0; color: #cbd5e1; font-size: 13px; font-weight: 600; }
+.ww-home-features span { display: block; margin-top: 8px; color: #64748b; font-size: 12px; line-height: 1.7; }
+
+@media (max-width: 900px) {
+  .ww-home-main { padding-top: 54px; }
+  .ww-home-hero { grid-template-columns: minmax(0, 1fr); gap: 38px; padding-bottom: 44px; }
+  .ww-home-copy { max-width: 640px; }
+}
+
+@media (max-width: 600px) {
+  .ww-home-main { padding: 38px 18px 52px; }
+  .ww-home-hero { gap: 30px; padding-bottom: 34px; }
+  .ww-home-title { font-size: 40px; }
+  .ww-home-description { margin-top: 16px; font-size: 14px; line-height: 1.7; }
+  .ww-home-actions { flex-direction: column; margin-top: 23px; }
+  .ww-home-primary, .ww-home-secondary { width: 100%; }
+  .ww-home-proof { gap: 9px 15px; margin-top: 23px; font-size: 11px; }
+  .ww-home-preview { padding: 18px; }
+  .ww-home-preview-title { font-size: 18px; }
+  .ww-home-row { gap: 10px; }
+  .ww-home-features { grid-template-columns: 1fr; gap: 21px; padding-top: 25px; }
 }
 
 /* =========================================================
