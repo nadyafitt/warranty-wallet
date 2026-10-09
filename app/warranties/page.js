@@ -6,7 +6,6 @@ function calculateStatus(warrantyEndDate) {
   const endDate = new Date(warrantyEndDate);
 
   const difference = endDate.getTime() - today.getTime();
-
   const daysRemaining = Math.ceil(
     difference / (1000 * 60 * 60 * 24)
   );
@@ -31,22 +30,60 @@ function calculateStatus(warrantyEndDate) {
   };
 }
 
-function formatDate(date) {
-  if (!date) return "-";
+function getProductIcon(category) {
+  const icons = {
+    Electronics: "💻",
+    Computer: "🖥️",
+    Phone: "📱",
+    Audio: "🎧",
+    "Home Appliance": "🏠",
+    Camera: "📷",
+    Watch: "⌚",
+    Other: "📦",
+  };
 
-  return new Date(date).toLocaleDateString("en-GB", {
-    day: "2-digit",
+  return icons[category] || "📦";
+}
+
+function formatDate(date) {
+  if (!date) return "—";
+
+  const parsedDate = new Date(date);
+
+  return parsedDate.toLocaleDateString("en-US", {
     month: "short",
+    day: "numeric",
     year: "numeric",
   });
 }
 
+function getStatusStyles(status) {
+  if (status === "Active") {
+    return {
+      badge: "ww-list-status-active",
+      icon: "✓",
+    };
+  }
+
+  if (status === "Expiring Soon") {
+    return {
+      badge: "ww-list-status-warning",
+      icon: "!",
+    };
+  }
+
+  return {
+    badge: "ww-list-status-expired",
+    icon: "×",
+  };
+}
+
 export default async function WarrantiesPage() {
+  const pool = getPool();
+
   let warranties = [];
 
   try {
-    const pool = getPool();
-
     const [rows] = await pool.query(`
       SELECT
         id,
@@ -57,10 +94,9 @@ export default async function WarrantiesPage() {
         warranty_end_date,
         purchase_price,
         store,
-        notes,
-        created_at
+        notes
       FROM warranties
-      ORDER BY created_at DESC
+      ORDER BY warranty_end_date ASC
     `);
 
     warranties = rows;
@@ -68,199 +104,262 @@ export default async function WarrantiesPage() {
     console.error("Failed to load warranties:", error);
   }
 
+  const warrantyData = warranties.map((warranty) => {
+    const { status, daysRemaining } = calculateStatus(
+      warranty.warranty_end_date
+    );
+
+    return {
+      ...warranty,
+      status,
+      daysRemaining,
+    };
+  });
+
+  const activeCount = warrantyData.filter(
+    (warranty) => warranty.status === "Active"
+  ).length;
+
+  const expiringSoonCount = warrantyData.filter(
+    (warranty) => warranty.status === "Expiring Soon"
+  ).length;
+
+  const expiredCount = warrantyData.filter(
+    (warranty) => warranty.status === "Expired"
+  ).length;
+
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <div className="mx-auto max-w-6xl">
+    <main className="ww-list-page">
+      <div className="grid-background ww-list-background" />
 
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-medium text-blue-400">
-              WARRANTY WALLET
-            </p>
+      <div className="hero-glow ww-list-glow" />
 
-            <h1 className="mt-1 text-3xl font-bold">
-              My Warranties
-            </h1>
-
-            <p className="mt-2 text-slate-400">
-              Manage all your products and warranties.
-            </p>
-          </div>
-
+      <div className="ww-list-container">
+        {/* Back */}
+        <div className="ww-list-back-wrapper">
           <Link
-            href="/warranties/new"
-            className="w-fit rounded-lg bg-blue-600 px-5 py-3 font-medium transition hover:bg-blue-500"
+            href="/dashboard"
+            className="ww-list-back-button"
           >
-            + Add Warranty
+            <span>←</span>
+            Back to Dashboard
           </Link>
         </div>
 
-        {/* Warranty List */}
-        <div className="mt-10">
+        {/* Header */}
+        <div className="ww-list-header">
+          <p className="ww-list-label">
+            WARRANTY WALLET
+          </p>
 
-          {warranties.length === 0 ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-900 p-10 text-center">
-              <div className="text-4xl">
-                🛡️
-              </div>
+          <h1 className="ww-list-title">
+            My Warranties
+          </h1>
 
-              <p className="mt-4 text-lg text-slate-300">
-                No warranties yet.
-              </p>
+          <p className="ww-list-description">
+            Keep track of your products, coverage periods,
+            and warranty expiration dates in one place.
+          </p>
 
-              <p className="mt-2 text-sm text-slate-500">
-                Add your first product warranty to get started.
-              </p>
+          <Link
+            href="/warranties/new"
+            className="ww-list-add-button"
+          >
+            <span>+</span>
+            Add Warranty
+          </Link>
+        </div>
 
-              <Link
-                href="/warranties/new"
-                className="mt-6 inline-block rounded-lg bg-blue-600 px-5 py-3 font-medium hover:bg-blue-500"
-              >
-                Add Warranty
-              </Link>
+        {/* Summary */}
+        {warrantyData.length > 0 && (
+          <div className="ww-list-summary">
+            <div>
+              <span>Total</span>
+              <strong>{warrantyData.length}</strong>
             </div>
-          ) : (
-            <div className="grid gap-5 md:grid-cols-2">
 
-              {warranties.map((warranty) => {
-                const { status, daysRemaining } =
-                  calculateStatus(
-                    warranty.warranty_end_date
-                  );
+            <div>
+              <span>Active</span>
+              <strong>{activeCount}</strong>
+            </div>
 
-                return (
-                  <div
-                    key={warranty.id}
-                    className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-lg transition hover:-translate-y-1 hover:border-blue-500/40"
-                  >
+            <div>
+              <span>Expiring Soon</span>
+              <strong>{expiringSoonCount}</strong>
+            </div>
 
-                    {/* Top */}
-                    <div className="flex items-start justify-between gap-4">
+            <div>
+              <span>Expired</span>
+              <strong>{expiredCount}</strong>
+            </div>
+          </div>
+        )}
 
-                      <div>
-                        <p className="text-sm text-slate-500">
-                          {warranty.brand}
-                        </p>
+        {/* Warranty Cards */}
+        {warrantyData.length > 0 ? (
+          <div className="ww-list-grid">
+            {warrantyData.map((warranty) => {
+              const statusStyles = getStatusStyles(
+                warranty.status
+              );
 
-                        <h2 className="mt-1 text-xl font-bold">
+              return (
+                <article
+                  key={warranty.id}
+                  className="ww-list-card"
+                >
+                  {/* Card Header */}
+                  <div className="ww-card-header">
+                    <div className="ww-card-product">
+                      <div className="ww-card-icon">
+                        {getProductIcon(warranty.category)}
+                      </div>
+
+                      <div className="ww-card-heading">
+                        <h2>
                           {warranty.product_name}
                         </h2>
 
-                        <p className="mt-1 text-sm text-slate-400">
-                          {warranty.category}
+                        <p>
+                          {warranty.brand}
                         </p>
                       </div>
+                    </div>
 
-                      {/* Status */}
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          status === "Active"
-                            ? "bg-emerald-500/10 text-emerald-400"
-                            : status === "Expiring Soon"
-                            ? "bg-yellow-500/10 text-yellow-400"
-                            : "bg-red-500/10 text-red-400"
-                        }`}
-                      >
-                        {status}
+                    <div
+                      className={`ww-card-status ${statusStyles.badge}`}
+                    >
+                      <span>
+                        {statusStyles.icon}
                       </span>
 
+                      {warranty.status}
+                    </div>
+                  </div>
+
+                  {/* Warranty Information */}
+                  <div className="ww-card-details">
+                    <div className="ww-card-detail">
+                      <span>Category</span>
+                      <strong>
+                        {warranty.category}
+                      </strong>
                     </div>
 
-                    {/* Divider */}
-                    <div className="my-5 h-px bg-slate-800" />
-
-                    {/* Details */}
-                    <div className="grid grid-cols-2 gap-5">
-
-                      <div>
-                        <p className="text-xs text-slate-500">
-                          Purchase Date
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-200">
-                          {formatDate(
-                            warranty.purchase_date
-                          )}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-slate-500">
-                          Warranty Ends
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-200">
-                          {formatDate(
-                            warranty.warranty_end_date
-                          )}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-slate-500">
-                          Store
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-200">
-                          {warranty.store || "-"}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-xs text-slate-500">
-                          Price
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-200">
-                          {warranty.purchase_price
-                            ? `RM ${Number(
-                                warranty.purchase_price
-                              ).toFixed(2)}`
-                            : "-"}
-                        </p>
-                      </div>
-
+                    <div className="ww-card-detail">
+                      <span>Purchased</span>
+                      <strong>
+                        {formatDate(
+                          warranty.purchase_date
+                        )}
+                      </strong>
                     </div>
 
-                    {/* Remaining */}
-                    <div className="mt-5 rounded-lg bg-slate-950 p-4">
-                      <p className="text-xs text-slate-500">
-                        Warranty Status
-                      </p>
-
-                      <p className="mt-1 text-sm font-medium">
-                        {daysRemaining < 0
-                          ? `Expired ${Math.abs(
-                              daysRemaining
-                            )} days ago`
-                          : daysRemaining === 0
-                          ? "Expires today"
-                          : `${daysRemaining} days remaining`}
-                      </p>
+                    <div className="ww-card-detail">
+                      <span>Warranty Ends</span>
+                      <strong>
+                        {formatDate(
+                          warranty.warranty_end_date
+                        )}
+                      </strong>
                     </div>
 
-                    {/* Notes */}
-                    {warranty.notes && (
-                      <div className="mt-5">
-                        <p className="text-xs text-slate-500">
-                          Notes
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-400">
-                          {warranty.notes}
-                        </p>
+                    {warranty.store && (
+                      <div className="ww-card-detail">
+                        <span>Store</span>
+                        <strong>
+                          {warranty.store}
+                        </strong>
                       </div>
                     )}
 
+                    {warranty.purchase_price !== null &&
+                      warranty.purchase_price !== undefined && (
+                        <div className="ww-card-detail">
+                          <span>Purchase Price</span>
+                          <strong>
+                            $
+                            {Number(
+                              warranty.purchase_price
+                            ).toFixed(2)}
+                          </strong>
+                        </div>
+                      )}
                   </div>
-                );
-              })}
 
+                  {/* Progress */}
+                  <div className="ww-card-progress">
+                    <div className="ww-card-progress-header">
+                      <span>Warranty Status</span>
+
+                      <span>
+                        {warranty.daysRemaining < 0
+                          ? `${Math.abs(
+                              warranty.daysRemaining
+                            )} days ago`
+                          : warranty.daysRemaining === 0
+                          ? "Ends today"
+                          : `${warranty.daysRemaining} days left`}
+                      </span>
+                    </div>
+
+                    <div className="ww-card-progress-track">
+                      <div
+                        className={`ww-card-progress-bar ${
+                          warranty.status === "Expired"
+                            ? "ww-card-progress-expired"
+                            : warranty.status ===
+                              "Expiring Soon"
+                            ? "ww-card-progress-warning"
+                            : "ww-card-progress-active"
+                        }`}
+                        style={{
+                          width:
+                            warranty.status === "Expired"
+                              ? "100%"
+                              : warranty.status ===
+                                "Expiring Soon"
+                              ? "75%"
+                              : "45%",
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  {warranty.notes && (
+                    <div className="ww-card-notes">
+                      <span>Notes</span>
+                      <p>{warranty.notes}</p>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          /* Empty State */
+          <div className="ww-list-empty">
+            <div className="ww-list-empty-icon">
+              🛡️
             </div>
-          )}
 
-        </div>
+            <h2>No warranties yet</h2>
+
+            <p>
+              Start building your Warranty Wallet by
+              adding your first protected product.
+            </p>
+
+            <Link
+              href="/warranties/new"
+              className="ww-list-empty-button"
+            >
+              Add Your First Warranty
+              <span>→</span>
+            </Link>
+          </div>
+        )}
       </div>
     </main>
   );
